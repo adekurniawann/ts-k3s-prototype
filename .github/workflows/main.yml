@@ -1,0 +1,32 @@
+name: demo-ci-cd
+
+#build trigger menggunakan push event ke branch staging
+on:
+  push:
+    tags:
+      - 'v*'
+jobs:
+  build:
+    runs-on: ubuntu-latest #setup ubuntu sebagai server/runner
+    steps:
+      - #stage checkoutcode
+       name: Checkout 
+       uses: actions/checkout@v3
+      -
+       name : Check Direktory
+       run: | 
+         ls
+      - #atentikasi ke docker registry menggunakan credential
+        name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+      - # stage build dan push docker 
+        name: Build and push
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/ts-k3s-prototype:${{ github.run_number }}
