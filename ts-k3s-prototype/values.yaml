@@ -17,9 +17,18 @@ fullnameOverride: ""
 
 configmap: ts-k3s-prototype-config
 
+pvc:
+  enabled: true
+  name: ts-k3s-prototype-data
+  storageClassName: manual
+  path: "/usr/src/app/src"
+  accessModes:
+    - "ReadWriteOnce"
+  size: 1Gi
+
 serviceAccount:
   # Specifies whether a service account should be created
-  create: true
+  create: false
   # Annotations to add to the service account
   annotations: {}
   # The name of the service account to use.
@@ -38,22 +47,34 @@ securityContext: {}
   # readOnlyRootFilesystem: true
   # runAsNonRoot: true
   # runAsUser: 1000
+# ingressClassName: nginx
 
 service:
   type: ClusterIP
   port: 3300
 
+timezone: "Asia/Jakarta"
+
 ingress:
-  enabled: false
-  className: ""
-  annotations: {}
-    # kubernetes.io/ingress.class: nginx
-    # kubernetes.io/tls-acme: "true"
+  enabled: true
+  annotations:
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+  
+  className: nginx
   hosts:
-    - host: chart-example.local
+    - host: test.domain.localhost
       paths:
-        - path: /
-          pathType: ImplementationSpecific
+       - path: /prototype/(.*)
+         pathType: Prefix
+        #  backend:
+        #    serviceName: prototype-ts-prototype-pm
+        #    servicePort: 3300
+         backend:
+          service:
+            name: ts-k3s-prototype
+            port:
+              number: 3300
   tls: []
   #  - secretName: chart-example-tls
   #    hosts:

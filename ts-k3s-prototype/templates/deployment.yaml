@@ -40,6 +40,18 @@ spec:
             - name: http
               containerPort: {{ .Values.service.port }}
               protocol: TCP
+          volumeMounts:
+            - name: localtime
+              mountPath: /etc/localtime
+              readOnly: true
+            - name: timezone
+              mountPath: /etc/timezone
+              readOnly: true
+            
+          # {{- if .Values.pvc.enabled }}
+          #   - name: data
+          #     mountPath: {{ .Values.pvc.path }}
+          #   {{- end }}
           # livenessProbe:
           #   httpGet:
           #     path: /
@@ -50,6 +62,20 @@ spec:
           #     port: http
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+
+      volumes:
+        - name: localtime
+          hostPath:
+            path: /etc/localtime
+        - name: timezone
+          hostPath:
+            path: /etc/timezone
+        # {{- if .Values.pvc.enabled }}
+        # - name: data
+        #   persistentVolumeClaim:
+        #     claimName: {{ .Values.pvc.name }} 
+        # {{- end }}
+
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
